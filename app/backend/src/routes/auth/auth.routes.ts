@@ -1,17 +1,14 @@
 import { Hono } from 'hono';
+import { getCurrentUser, syncUser } from '../../controller/user/user.controller.js';
+
 
 const auth = new Hono();
+ 
+auth.post('/sync', syncUser);
+auth.get('/getCurrentUser', getCurrentUser);
 
-auth.post('/login', async (c) => {
-    return c.json({ message: 'Login route' });
-});
-
-auth.post('/refresh', async (c) => {
-    return c.json({ message: 'Refresh route' });
-})
-
-auth.get('/logout', async (c) => {
-    return c.json({ message: 'Logout route' });
+auth.post('/logout', async (c) => {
+  return c.json({ success: true, message: 'Logged out successfully' });
 });
 
 export default auth;
