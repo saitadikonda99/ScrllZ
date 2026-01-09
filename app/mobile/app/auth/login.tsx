@@ -1,9 +1,10 @@
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { Colors } from '@/constants/theme'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Image, Platform, Pressable, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
 
 import { useSignIn, useSSO } from '@clerk/clerk-expo'
 import * as Linking from 'expo-linking'
@@ -30,7 +31,7 @@ const useWarmUpBrowser = () => {
 const Login = () => {
   useWarmUpBrowser()
   
-  const { signIn, setActive, isLoaded } = useSignIn()
+  const { signIn, isLoaded } = useSignIn()
   const { startSSOFlow } = useSSO()
   const router = useRouter()
   const redirectUrl = Linking.createURL('/')
@@ -47,7 +48,7 @@ const Login = () => {
         redirectUrlComplete: '/(tabs)/home',
       })
     } catch (err) {
-      console.error(`Web ${strategy} error:`, err)
+      // Error handled silently - user can retry
     }
   }, [isLoaded, signIn])
 
@@ -72,7 +73,7 @@ const Login = () => {
         router.replace('/(tabs)/home');
       }
     } catch (err) {
-      console.error(`Native ${strategy} error:`, err);
+      // Error handled silently - user can retry
     }
   }, [startSSOFlow, redirectUrl, router]);
 
@@ -152,14 +153,6 @@ const Login = () => {
                   Login with apple
                 </ThemedText>
             </Pressable>
-            {/* <ThemedView style={styles.login_four_one} lightColor="white" darkColor="white">
-              <Mail />
-              <ThemedText
-                style={styles.login_four_text}
-                lightColor={Colors.light.text}
-                darkColor={Colors.light.text}
-              >Login with Email</ThemedText>
-            </ThemedView> */}
           </ThemedView>
         </ThemedView>
       </ThemedView>
