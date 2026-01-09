@@ -1,48 +1,96 @@
-import React, {useState }from 'react'
-import { StyleSheet, Image, TouchableOpacity } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { ThemedView } from '@/components/themed-view'
 import { ThemedText } from '@/components/themed-text'
+import { ThemedView } from '@/components/themed-view'
 import { Colors } from '@/constants/theme'
-import { Mail } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react'
+import { Image, Platform, Pressable, StyleSheet } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useSignIn } from '@clerk/clerk-expo'
-import { Link, useRouter } from 'expo-router'
+import { useSignIn, useSSO } from '@clerk/clerk-expo'
+import * as Linking from 'expo-linking'
+import { useRouter } from 'expo-router'
+import * as WebBrowser from 'expo-web-browser'
 
+// Required to complete the OAuth redirect on web
+if (Platform.OS === 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
-const login = () => {
+// Warm up browser for native OAuth (improves UX)
+const useWarmUpBrowser = () => {
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      void WebBrowser.warmUpAsync()
+      return () => {
+        void WebBrowser.coolDownAsync()
+      }
+    }
+  }, [])
+}
 
-  const { signIn, setActive, isLoaded } = useSignIn()
-  const router = useRouter()
-
-  const [emailAddress, setEmailAddress] = useState('')
-  const [password, setPassword] = useState('')
+const Login = () => {
+  useWarmUpBrowser()
   
+  const { signIn, setActive, isLoaded } = useSignIn()
+  const { startSSOFlow } = useSSO()
+  const router = useRouter()
+  const redirectUrl = Linking.createURL('/')
 
-  const onSignInPress = async () => {
-    if (!isLoaded) return
 
-    // Start the sign-in process using the email and password provided
+  // For web: use redirect-based OAuth (no popup issues)
+  const handleWebOAuth = useCallback(async (strategy: 'oauth_google' | 'oauth_apple') => {
+    if (!isLoaded || !signIn) return
+    
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress,
-        password,
+      await signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/auth/sso-callback',
+        redirectUrlComplete: '/(tabs)/home',
       })
+    } catch (err) {
+      console.error(`Web ${strategy} error:`, err)
+    }
+  }, [isLoaded, signIn])
 
-      // If sign-in process is complete, set the created session as active
-      // and redirect the user
-      if (signInAttempt.status === 'complete') {
-        await setActive({ session: signInAttempt.createdSessionId })
-        router.replace('/')
-      } else {
-        // If the status isn't complete, check why. User might need to
-        // complete further steps.
-        console.error(JSON.stringify(signInAttempt, null, 2))
+  // For native: use popup-based SSO flow
+  const handleNativeOAuth = useCallback(async (strategy: 'oauth_google' | 'oauth_apple') => {
+    try {
+      const result = await startSSOFlow({
+        strategy,
+        redirectUrl,
+      });
+      
+      const { createdSessionId, signIn: ssoSignIn, signUp: ssoSignUp, setActive } = result;
+      
+      if (createdSessionId) {
+        await setActive!({ session: createdSessionId });
+        router.replace('/(tabs)/home');
+      } else if (ssoSignUp?.status === 'complete') {
+        await setActive!({ session: ssoSignUp.createdSessionId });
+        router.replace('/(tabs)/home');
+      } else if (ssoSignIn?.status === 'complete') {
+        await setActive!({ session: ssoSignIn.createdSessionId });
+        router.replace('/(tabs)/home');
       }
     } catch (err) {
-      console.error(JSON.stringify(err, null, 2))
+      console.error(`Native ${strategy} error:`, err);
     }
-  }
+  }, [startSSOFlow, redirectUrl, router]);
+
+  const onGooglePress = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      await handleWebOAuth('oauth_google');
+    } else {
+      await handleNativeOAuth('oauth_google');
+    }
+  }, [handleWebOAuth, handleNativeOAuth]);
+
+  const onApplePress = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      await handleWebOAuth('oauth_apple');
+    } else {
+      await handleNativeOAuth('oauth_apple');
+    }
+  }, [handleWebOAuth, handleNativeOAuth]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: 'white' }]}>
@@ -74,10 +122,11 @@ const login = () => {
             <Image
               source={require('@/assets/images/Login.png')}
               style={styles.login_image}
+              resizeMode="contain"
             />
           </ThemedView>
           <ThemedView style={styles.login_four} lightColor="white" darkColor="white">
-            <ThemedView style={styles.login_four_one} lightColor="white" darkColor="white">
+            <Pressable onPress={onGooglePress} style={styles.login_four_one}>
               <Image
                 source={require('@/assets/icons/Google.png')}
                 style={styles.login_icon_image}
@@ -86,16 +135,31 @@ const login = () => {
                 style={styles.login_four_text}
                 lightColor={Colors.light.text}
                 darkColor={Colors.light.text}
-              >Login with Google</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.login_four_one} lightColor="white" darkColor="white">
+              >
+                Login with Google
+              </ThemedText>
+            </Pressable>
+            <Pressable onPress={onApplePress} style={styles.login_four_one}>
+              <Image
+                source={require('@/assets/icons/Apple.png')}
+                style={styles.login_icon_image}
+              />
+                <ThemedText
+                  style={styles.login_four_text}
+                  lightColor={Colors.light.text}
+                  darkColor={Colors.light.text}
+                >
+                  Login with apple
+                </ThemedText>
+            </Pressable>
+            {/* <ThemedView style={styles.login_four_one} lightColor="white" darkColor="white">
               <Mail />
               <ThemedText
                 style={styles.login_four_text}
                 lightColor={Colors.light.text}
                 darkColor={Colors.light.text}
               >Login with Email</ThemedText>
-            </ThemedView>
+            </ThemedView> */}
           </ThemedView>
         </ThemedView>
       </ThemedView>
@@ -103,7 +167,7 @@ const login = () => {
   )
 }
 
-export default login
+export default Login
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -154,7 +218,6 @@ const styles = StyleSheet.create({
   login_image: {
     width: '100%',
     height: 300,
-    resizeMode: 'contain',
   },
 
   login_four: {
@@ -179,8 +242,8 @@ const styles = StyleSheet.create({
   },
 
   login_icon_image: {
-    width: 20,
-    height: 20,
+    width: 25,
+    height: 25,
   },
 
   login_four_text: {
