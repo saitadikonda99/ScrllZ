@@ -4,13 +4,15 @@ import React from 'react'
 import { ThemedView } from '@/components/themed-view'
 import { ThemedText } from '@/components/themed-text'
 
-import { useClerk } from '@clerk/clerk-expo'
+import { useClerk, useUser } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 
 const Home = () => {
-   const { signOut } = useClerk()
-   const router = useRouter()
-    
+  const { signOut } = useClerk()
+  const router = useRouter()
+
+  const { user, isLoaded } = useUser();
+  
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -21,16 +23,16 @@ const Home = () => {
   }
 
   return (
-        <SafeAreaView>
-            <ThemedView>
-                <ThemedText>
-                    Home Screen
-                </ThemedText>
-                <Pressable onPress={handleSignOut}>
-                    <Text onPress={handleSignOut}>Sign Out</Text>
-                </Pressable>
-            </ThemedView>
-        </SafeAreaView>
+    <SafeAreaView>
+      <ThemedView>
+        <ThemedText>
+          
+        </ThemedText>
+        <Pressable onPress={handleSignOut}>
+          <Text onPress={handleSignOut}>Sign Out</Text>
+        </Pressable>
+      </ThemedView>
+    </SafeAreaView>
   )
 }
 

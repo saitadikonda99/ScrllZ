@@ -5,7 +5,6 @@ import React, { useCallback, useEffect } from 'react'
 import { Image, Platform, Pressable, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-
 import { useSignIn, useSSO } from '@clerk/clerk-expo'
 import * as Linking from 'expo-linking'
 import { useRouter } from 'expo-router'
@@ -44,8 +43,8 @@ const Login = () => {
     try {
       await signIn.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/auth/sso-callback',
-        redirectUrlComplete: '/(tabs)/home',
+        redirectUrl: Linking.createURL('/auth/sso-callback'),
+        redirectUrlComplete: Linking.createURL('/auth/sso-callback'),
       })
     } catch (err) {
       // Error handled silently - user can retry

@@ -16,18 +16,29 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  clerkUserId      String   @unique
-  email            String   @unique
+  id               String           @id @default(uuid())
+  clerkUserId      String           @unique
+  email            String           @unique
   name             String?
-  role             Role     @default(USER)
-  profileCompleted Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  role             Role             @default(USER)
+  profileCompleted Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  isDataCollected  isDataCollected?
 }
 
 enum Role {
   USER
   RECRUITER
   ADMIN
+}
+
+model isDataCollected {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  collected Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
