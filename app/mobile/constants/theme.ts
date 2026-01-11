@@ -10,7 +10,7 @@ const tintColorDark = 'white';
 
 export const Colors = {
   light: {
-    text: '#11181C',
+    text: 'black',
     textSecondary: '#666666',
     textMuted: '#999999',
     background: 'white',
@@ -28,9 +28,9 @@ export const Colors = {
     warning: '#FF9800',
   },
   dark: {
-    text: '#ECEDEE',
-    textSecondary: '#B0B0B0',
-    textMuted: '#808080',
+    text: '#ffffff',
+    textSecondary: '#ffffff',
+    textMuted: '#ffffff',
     background: '#151718',
     backgroundSecondary: '#1E1E1E',
     tint: tintColorDark,

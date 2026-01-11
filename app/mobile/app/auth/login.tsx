@@ -1,9 +1,9 @@
+import { ThemedSafeAreaView } from '@/components/themed-safe-area-view'
 import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import { Colors } from '@/constants/theme'
 import React, { useCallback, useEffect } from 'react'
 import { Image, Platform, Pressable, StyleSheet } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSignIn, useSSO } from '@clerk/clerk-expo'
 import * as Linking from 'expo-linking'
@@ -93,7 +93,7 @@ const Login = () => {
   }, [handleWebOAuth, handleNativeOAuth]);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: 'white' }]}>
+    <ThemedSafeAreaView lightColor="white" darkColor="white">
       <ThemedView style={styles.LoginComponent} lightColor="white" darkColor="white">
         <ThemedView style={styles.LoginComponent_in} lightColor="white" darkColor="white">
           <ThemedView style={styles.login_one} lightColor="white" darkColor="white">
@@ -155,17 +155,13 @@ const Login = () => {
           </ThemedView>
         </ThemedView>
       </ThemedView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   )
 }
 
 export default Login
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-
   LoginComponent: {
     width: '100%',
     height: '100%',

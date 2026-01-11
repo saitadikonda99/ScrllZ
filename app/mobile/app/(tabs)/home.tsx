@@ -1,8 +1,9 @@
-import { View, Text, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import React from 'react'
-import { ThemedView } from '@/components/themed-view'
+import { ThemedSafeAreaView } from '@/components/themed-safe-area-view'
 import { ThemedText } from '@/components/themed-text'
+import { ThemedView } from '@/components/themed-view'
+import { Colors } from '@/constants/theme'
+import React from 'react'
+import { Pressable } from 'react-native'
 
 import { useClerk, useUser } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
@@ -12,7 +13,7 @@ const Home = () => {
   const router = useRouter()
 
   const { user, isLoaded } = useUser();
-  
+
   const handleSignOut = async () => {
     try {
       await signOut()
@@ -23,16 +24,27 @@ const Home = () => {
   }
 
   return (
-    <SafeAreaView>
+    <ThemedSafeAreaView>
       <ThemedView>
         <ThemedText>
-          
+
         </ThemedText>
         <Pressable onPress={handleSignOut}>
-          <Text onPress={handleSignOut}>Sign Out</Text>
+          <ThemedText
+            onPress={handleSignOut}
+            lightColor={Colors.light.textSecondary}
+            darkColor={Colors.dark.textSecondary}
+          >Sign Out</ThemedText>
+
+          <Pressable onPress={() => router.push('/onBoarding/create-profile')}>
+            <ThemedText
+              lightColor={Colors.light.textSecondary}
+              darkColor={Colors.dark.textSecondary}
+            >onBoarding</ThemedText>
+          </Pressable>
         </Pressable>
       </ThemedView>
-    </SafeAreaView>
+    </ThemedSafeAreaView>
   )
 }
 
